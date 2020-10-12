@@ -1,0 +1,192 @@
+---
+title: "Assignment_2"
+author: "Mr. GULAB PATEL"
+date: "26/09/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Import packages to read excel file
+```{r}
+library(readxl)
+```
+
+#Prepare data
+```{r}
+ActuatorData1 <- read_excel("/cloud/project/ISI_BLR_Data_Processing_R/ISI_R_Assignment_2/Gulab Patel - Actuator_Data.xlsx")
+head(ActuatorData1)
+```
+
+#Delete the "SL_No"
+```{r}
+ActuatorData = ActuatorData1[,c(-1)]
+head(ActuatorData)
+```
+
+#Summary of data
+```{r}
+summary(ActuatorData)
+```
+
+# Import caret package
+```{r}
+library(caret)
+```
+
+# making the data format as data frame
+```{r}
+ActuatorData = as.data.frame(ActuatorData)
+```
+
+
+# Separate x's and y
+```{r}
+x = ActuatorData[,c("Bearing_to_bearing_Length","Driver_Shaft_length","Worm_length","Thickness","Height","Height","Load")]
+y = ActuatorData$Torque_Variation
+head(x)
+```
+
+#Converting y to a categorical variable
+```{r}
+y = as.factor(y)
+```
+
+
+# Data Visualization FeaturePlot
+```{r}
+featurePlot(x,y,plot = "density",
+            scales= list(x = list(relation = "free"),
+                         y = list(relation = "free")),
+                         pch = "", adjust = 2.5,
+                         layout = c(4,2),
+                         auto.key = list(columns = 3))
+```
+#From the above boxplot figure, we can say that "Bearing_to_bearing_Length" has the most influence on torque variation
+
+
+
+#When y is categorical can use BoxPlot
+```{r}
+featurePlot(x,y,plot = "box",
+            scales= list(x = list(relation = "free"),
+                         y = list(relation = "free")),
+                         layou = c(4,2))
+```
+#From the above boxplot figure, we can say that "Bearing_to_bearing_Length" has the most influence on torque variation
+
+
+
+
+
+# Question 2
+#Import package to read excel file
+```{r}
+library(readxl)
+```
+
+
+```{r}
+Resolution_Time_Data1 <- read_excel("/cloud/project/ISI_BLR_Data_Processing_R/ISI_R_Assignment_2/Gulab Patel - Resolution_Time_Data.xlsx")
+head(Resolution_Time_Data1)
+```
+
+#Delete the first column
+```{r}
+ResolutionTimeData = Resolution_Time_Data1[,c(-1)]
+head(ResolutionTimeData)
+```
+# a
+# Summary
+```{r}
+summary(ResolutionTimeData)
+```
+#Our dataset contains missing values
+
+
+
+# Replace missing values using "knnImpute" method
+
+#To do the KNN imputation implementation, change data to dataframe
+```{r}
+ResolutionTimeData = as.data.frame(ResolutionTimeData)
+```
+
+
+#Import caret package
+```{r}
+library(caret)
+```
+
+```{r}
+install.packages("RANN")
+library(RANN)
+```
+#K-NN imputation with k = 4
+```{r}
+mypreprocess = preProcess(ResolutionTimeData, method = "knnImpute", k=4)
+mypreprocess
+```
+
+```{r}
+ResolutionTimeData = predict(mypreprocess, ResolutionTimeData)
+head(ResolutionTimeData)
+```
+
+#(b)
+##Data Vizualization
+# Separate x's and y
+```{r}
+x = ResolutionTimeData[,1:3]
+y = ResolutionTimeData$Resolution_Time
+```
+
+#Data visualization
+```{r}
+featurePlot(x,y, plot = "scatter")
+```
+#Above scatter plot shows that the explanatory variables and resolution time has the positive corelation. From the scatter plot, it seems that Volume is impacting resolution time most.
+
+
+
+
+
+#(c)
+#Feature Selection - Linear Regression
+```{r}
+mycontrol = rfeControl(functions = lmFuncs,
+                       method = "repeatedcv",
+                       repeats = 5,
+                       verbose = T)
+```
+
+
+```{r}
+myModellm = rfe(x, y, rfeControl = mycontrol)
+myModellm
+```
+
+#Feature Selection - Random Forest
+```{r}
+mycontrol = rfeControl(functions = rfFuncs,
+                       method = "repeatedcv",
+                       repeats = 5,
+                       verbose = T)
+```
+
+
+```{r}
+myModelrf = rfe(x,y,rfeControl = mycontrol)
+myModelrf
+```
+# Feature selection algorithm shows that all the explanatory variables are influencing resolution time.
+```{r}
+name <- function(variables) {
+  
+}
+```
+

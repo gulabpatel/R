@@ -1,0 +1,373 @@
+---
+title: "ISI_Data_Processing"
+author: "Mr. GULAB PATEL"
+date: "18/09/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+##Module 6 Data Transformations
+```{r}
+library(readxl)
+TAT <- read_excel("/cloud/project/ISI_BLR_Data_Processing_R/Dataset/TAT.xlsx")
+head(TAT)
+```
+
+
+```{r}
+summary(TAT)
+```
+
+
+```{r}
+library(psych)
+describe(TAT)
+```
+#Z transformation
+```{r}
+myzdata = scale(TAT)
+describe(myzdata)
+```
+
+#Compute minimum of the fields
+```{r}
+mins = apply(TAT, 2, min)
+mins
+```
+
+#Compute maximum of the fields
+```{r}
+maxs = apply(TAT, 2, max)
+maxs
+```
+
+# Min-max transformation
+```{r}
+tr_data = scale(TAT,center = mins,scale = maxs-mins)
+describe(tr_data)
+```
+
+#Module 7 Imputation method
+#Advanced techniques for replacing missing values:
+#1. k nearest neighbor method
+#2. Bagging method
+
+
+#1. KNN method
+```{r}
+SP1 <- read_excel("/cloud/project/ISI_BLR_Data_Processing_R/Dataset/Preprocessing_Data_I.xlsx")
+SP2 <- read.csv("/cloud/project/ISI_BLR_Data_Processing_R/Dataset/Preprocessing_Data_II.csv")
+```
+
+```{r}
+#head(SP1)
+#head(SP2)
+```
+
+#Aggregate the files
+```{r}
+#mydat <- rbind(SP1,SP2)
+#head(mydat)
+```
+#feature names does not matches so let's check which feature differ from corresponding feature in the second file.
+```{r}
+for(i in 1:ncol(SP1))
+{
+ print(identical(names(SP1[i]), names(SP2[i])))
+}
+```
+#First feaure doesn't match, now make them same
+```{r}
+colnames(SP1)[colnames(SP1)=="SL No"]<-names(SP2[1])
+names(SP1[1])
+```
+
+```{r}
+mydat <- rbind(SP1,SP2)
+head(mydat)
+```
+
+#Remove SL No filed
+```{r}
+mydat=mydat[,c(-1)]
+head(mydat)
+```
+
+#Summary of mydat
+```{r}
+summary(mydat)
+```
+
+#To do the KNN implementation, change mydat to dataframe
+```{r}
+mydat = as.data.frame(mydat)
+```
+
+```{r}
+install.packages("caret")
+```
+
+#Import caret package
+```{r}
+library(caret)
+```
+
+```{r}
+install.packages("RANN")
+library(RANN)
+```
+
+#K-NN imputation with k = 4
+```{r}
+mypreprocess = preProcess(mydat, method = "knnImpute", k=4)
+mypreprocess
+```
+
+```{r}
+knn_data = predict(mypreprocess, mydat)
+knn_data
+```
+
+
+
+#Bagging Imputation
+```{r}
+myprocess_bagg = preProcess(mydat, method="bagImpute")
+bag_data = predict(myprocess_bagg, mydat)
+bag_data
+```
+
+#Import package to read excel file
+```{r}
+library(readxl)
+```
+
+#Module 8 Data Visualization
+```{r}
+ChemYield <- read_excel("/cloud/project/ISI_BLR_Data_Processing_R/Dataset/Chemical_Yield.xlsx")
+ChemYield
+```
+#Cleanup data by deleting "SL No"
+```{r}
+ChemYield = ChemYield[,c(-1)]
+ChemYield
+```
+
+# Data Summary
+```{r}
+summary(ChemYield)
+```
+
+# Import caret package
+```{r}
+library(caret)
+```
+
+# making the data format as data frame
+```{r}
+ChemYield = as.data.frame(ChemYield)
+ChemYield
+```
+
+# Imputing missing values using Bagging imputation
+```{r}
+preprocess = preProcess(ChemYield, method = "bagImpute")
+ChemYield = predict(preprocess, ChemYield)               
+ChemYield
+```
+
+# Separate x's and y
+```{r}
+x = ChemYield[,1:3]
+y = ChemYield$Yield
+```
+
+#Data visualization
+```{r}
+featurePlot(x,y, plot = "scatter")
+```
+
+
+```{r}
+DefectPron <- read_excel("/cloud/project/ISI_BLR_Data_Processing_R/Dataset/Defect_Proneness.xlsx")
+DefectPron
+```
+```{r}
+summary(DefectPron)
+```
+
+# seperating x's and y
+```{r}
+x = DefectPron[,1:8]
+y = DefectPron$Defect_Prone
+```
+
+
+#Converting y to a categorical variable
+```{r}
+y = as.factor(y)
+```
+
+# Data Visualization FeaturePlot
+```{r}
+featurePlot(x,y,plot = "density",
+            scales= list(x = list(relation = "free"),
+                         y = list(relation = "free")),
+                         pch = "", adjust = 2.5,
+                         layout = c(4,2),
+                         auto.key = list(columns = 3))
+```
+
+#When y is categorical can use BoxPlot
+```{r}
+featurePlot(x,y,plot = "box",
+            scales= list(x = list(relation = "free"),
+                         y = list(relation = "free")),
+                         layout = c(4,2))
+```
+
+
+
+# Module 9 Feature Selection
+## Recursive Feature Elimination Method
+### Steps:
+#1. Fit a model with all features
+#2. Validate model
+#3. Calculate accuracy or score
+#4. Remove the least contributing feature
+#5. Fit the model with remaining features and go back to step 2
+#Generally accuracy is estimated using cross validation
+```{r}
+SP1 <- read_excel("/cloud/project/ISI_BLR_Data_Processing_R/Dataset/Preprocessing_Data_I.xlsx")
+SP2 <- read.csv("/cloud/project/ISI_BLR_Data_Processing_R/Dataset/Preprocessing_Data_II.csv")
+```
+
+#First feaure doesn't match, now make them same
+```{r}
+colnames(SP1)[colnames(SP1)=="SL No"]<-names(SP2[1])
+names(SP1[1])
+```
+# Prepare the dataset
+```{r}
+mydata = rbind(SP1, SP2)
+head(mydata)
+```
+
+#Cleanup dataset by removing "SL_No field
+```{r}
+mydata1 = mydata[,c(-1)]
+head(mydata1)
+```
+
+#Seperate x's and y
+```{r}
+x = mydata1[,1:8]
+y = mydata1$Sprint_Prod
+```
+
+#Import caret library
+```{r}
+library(caret)
+```
+
+#replacing the missing values in x using Bagging imputation
+```{r}
+mypreprocess = preProcess(x,method="bagImpute")
+x = predict(mypreprocess, x)
+```
+
+#Feature Selection - Linear Regression
+```{r}
+mycontrol = rfeControl(functions = lmFuncs,
+                       method = "repeatedcv",
+                       repeats = 5,
+                       verbose = T)
+```
+
+
+```{r}
+myModellm = rfe(x, y, rfeControl = mycontrol)
+myModellm
+```
+
+#Feature Selection - Random Forest
+```{r}
+mycontrol = rfeControl(functions = rfFuncs,
+                       method = "repeatedcv",
+                       repeats = 5,
+                       verbose = T)
+```
+
+
+```{r}
+myModelrf = rfe(x,y,rfeControl = mycontrol)
+myModelrf
+```
+
+
+#example when responce variable is categorical
+## Import biospy data from MASS package(we can download the data from MASS package too)
+```{r}
+library(MASS)
+Biopsy = biopsy #read_csv("/cloud/project/ISI_BLR_Data_Processing_R/Dataset/biopsy.csv")
+head(Biopsy)
+```
+#Clean the data by removing "ID" Field
+```{r}
+Biopsy1 = Biopsy[,c(-1)]
+head(Biopsy1)
+```
+
+#Summary data
+```{r}
+summary(Biopsy1)
+```
+# deleting records with missing values use the following code
+```{r}
+Biopsy1 = na.omit(Biopsy1)
+Biopsy1
+```
+
+# Seperate x and y
+```{r}
+x = Biopsy1[,1:9]
+y = Biopsy1$class
+```
+
+# Feature selection using linear discriminant function
+```{r}
+mycontrollda = rfeControl(functions = ldaFuncs,
+                       method = "repeatedcv",
+                       repeats = 5,
+                       verbose = T)
+```
+
+#For LDA we need to install package "e1071"
+```{r}
+install.packages("e1071")
+library(e1071)
+```
+
+```{r}
+myModellda = rfe(x,y, rfeControl = mycontrollda)
+myModellda
+```
+
+# Feature selection using random forest function
+```{r}
+mycontrol = rfeControl(functions = rfFuncs,
+                       method = "repeatedcv",
+                       repeats = 5,
+                       verbose = T)
+```
+
+
+```{r}
+myModel = rfe(x,y, rfeControl = mycontrol)
+myModel
+```
+

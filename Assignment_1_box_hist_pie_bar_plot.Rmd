@@ -1,0 +1,256 @@
+---
+title: "Assignment_1"
+author: "Mr. GULAB PATEL"
+date: "13/09/2020"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+#Question
+```{r}
+Gulab_Patel_Actuator_I_Sheet2 <- read.csv("/cloud/project/ISI_BLR_Data_Processing_R/ISI_R_Assignment_1/Gulab Patel - Actuator_I - Sheet2.csv")
+Gulab_Patel_Actuator_II_Sheet1 <- read.csv("/cloud/project/ISI_BLR_Data_Processing_R/ISI_R_Assignment_1/Gulab Patel - Actuator_II - Sheet1.csv")
+```
+
+```{r}
+mydata = rbind(Gulab_Patel_Actuator_I_Sheet2,Gulab_Patel_Actuator_II_Sheet1)
+head(mydata)
+```
+
+
+# Summary of mydata
+```{r}
+summary(mydata)
+```
+```{r echo=FALSE}
+Position = factor(mydata$Star_Washer_position, labels = c("Bearing","Worm"))
+Position
+```
+
+```{r echo=FALSE}
+Torque = factor(mydata$Torque_Variation, labels = c("High","Low"))
+Torque
+```
+```{r}
+attach(mydata)
+```
+
+```{r}
+mydata1 = cbind(SL_No,Bearing_to_bearing_Length,Driver_Shaft_length,Worm_length,Position,Thickness,Height,Load,Torque)
+head(mydata1)
+```
+
+#BoxPlot
+```{r}
+boxplot(mydata1)
+```
+
+
+```{r eval=FALSE, include=FALSE}
+aggregate(mydata1$Worm_length ~ Bearing, FUN = mean)
+```
+
+
+#From the above figure boxplot is not visble clearly so we plot them seperately
+```{r}
+boxplot(Bearing_to_bearing_Length)
+```
+```{r}
+boxplot(Driver_Shaft_length)
+```
+
+
+```{r}
+boxplot(Worm_length)
+```
+
+
+```{r}
+boxplot(Thickness)
+```
+
+
+```{r}
+boxplot(Height)
+```
+
+```{r}
+boxplot(Load)
+```
+
+#Histogram
+```{r}
+hist(mydata$Bearing_to_bearing_Length)
+hist(mydata$Driver_Shaft_length)
+hist(mydata$Worm_length)
+#hist(mydata$Star_Washer_position)
+hist(mydata$Thickness)
+hist(mydata$Height)
+hist(mydata$Load)
+#hist(mydata$Torque_Variation)
+```
+
+#Pie plot
+```{r}
+pie(mydata$Bearing_to_bearing_Length)
+pie(mydata$Driver_Shaft_length)
+pie(mydata$Worm_length)
+#pie(mydata$Star_Washer_position)
+pie(mydata$Thickness)
+pie(mydata$Height)
+pie(mydata$Load)
+#pie(mydata$Torque_Variation)
+```
+
+
+#BarPlot
+```{r}
+barplot(mydata$Bearing_to_bearing_Length)
+barplot(mydata$Driver_Shaft_length)
+barplot(mydata$Worm_length)
+barplot(mydata$Thickness)
+barplot(mydata$Height)
+barplot(mydata$Load)
+```
+
+
+
+#Question-2
+```{r}
+Resolution_Time_I <- read.csv("/cloud/project/ISI_BLR_Data_Processing_R/ISI_R_Assignment_1/Gulab Patel - Resolution_TimeI - Sheet1.csv")
+Resolution_Time_II <- read.csv("/cloud/project/ISI_BLR_Data_Processing_R/ISI_R_Assignment_1/Gulab Patel - Resolution_TimeII - Sheet1.csv")
+```
+
+
+#Merge files
+```{r}
+mydata2 <- merge(Resolution_Time_I,Resolution_Time_II, by="SL_No")
+mydata2
+```
+
+#Check missing value
+```{r}
+summary(mydata2)
+```
+# From the above summary table, we can see there is one missing value in each column
+
+#We can also use the following code to check the missing values
+```{r}
+sapply(mydata2,function(x)sum(is.na(x)))
+```
+```{r}
+print(colSums(is.na(mydata2)))
+sum(is.na(mydata2))
+```
+# Thus we total three missing value
+
+```{r}
+attach(mydata2)
+```
+
+
+# Replace missing value with appropriate statistics
+```{r}
+volume = Volume
+Volume_mean = mean(volume, na.rm = T)
+volume[is.na(Volume)]=Volume_mean
+volume = round(volume)
+volume
+```
+
+
+```{r}
+experience = Team_Experience
+experience_mean = mean(experience, na.rm = T)
+experience[is.na(Team_Experience)]=experience_mean
+experience = round(experience)
+experience
+```
+
+
+```{r}
+expertise = Domain_Expertise
+expertise_mean = mean(expertise, na.rm = T)
+expertise[is.na(Domain_Expertise)]=expertise_mean
+expertise = round(expertise)
+expertise
+```
+
+#Preparing cleaned up data
+```{r}
+newdata_mean = cbind(SL_No,volume,experience,expertise,Resolution_Time)
+newdata_mean
+```
+
+
+```{r}
+colSums(is.na(newdata_mean))
+```
+
+
+```{r}
+summary(newdata_mean)
+```
+```{r}
+summary(mydata2)
+```
+# From the above two summary of we do not see any significant variation after replacement so mean is an appropriate statistics for missing value replacement.
+
+#Replace with median
+```{r}
+volume = Volume
+Volume_median = median(volume, na.rm = T)
+volume[is.na(Volume)]=Volume_median
+volume_median = round(volume)
+volume_median
+```
+
+
+```{r}
+experience = Team_Experience
+experience_median = median(experience, na.rm = T)
+experience[is.na(Team_Experience)]=experience_median
+experience_median = round(experience)
+experience_median
+```
+
+
+```{r}
+expertise = Domain_Expertise
+expertise_median = median(expertise, na.rm = T)
+expertise[is.na(Domain_Expertise)]=expertise_median
+expertise_median = round(expertise)
+expertise_median
+```
+
+
+```{r}
+newdata_median = cbind(SL_No,volume_median,experience_median,expertise_median,Resolution_Time)
+newdata_median
+```
+```{r}
+summary(newdata_median)
+```
+```{r}
+summary(mydata2)
+```
+```{r}
+Volume = na.omit(Volume)
+plot(density(Volume))    #This plot is corresponding to original data
+plot(density(volume)) #This plot is after replacing the missing value with mean
+plot(density(volume_median)) #This plot is after replacing the missing value with median
+```
+#From the above table and summary statisctics it is clear that replacing value with  mean or median both are good but mean is slightly better than the median.
